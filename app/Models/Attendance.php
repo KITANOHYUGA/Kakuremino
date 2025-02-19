@@ -9,11 +9,6 @@ class Attendance extends Model
 {
     use HasFactory;
 
-        /**
-     * マスアサインメント可能な属性
-     *
-     * @var array
-     */
     protected $fillable = [
         'user_id',
         'date',

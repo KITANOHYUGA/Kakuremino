@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Attendance;
 
 
 class AdminController extends Controller
@@ -16,5 +17,4 @@ class AdminController extends Controller
         // ビューにデータを渡す
         return view('users.index', compact('users'));
     }
-
 }

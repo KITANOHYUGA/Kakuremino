@@ -41,6 +41,11 @@ return [
                     'url'  => 'users',
                     'icon' => 'fas fa-gamepad',
                 ],
+                [
+                    'text' => '勤怠確認',
+                    'url'  => 'users/attendanceRequests',
+                    'icon' => 'fas fa-gamepad',
+                ],
             ],
         ],
     ],

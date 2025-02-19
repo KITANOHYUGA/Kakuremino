@@ -4,39 +4,43 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Attendance;
+use App\Models\AttendanceRequest;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
+
 
 class AttendanceController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $attendances = Attendance::where('user_id', Auth::id())->get();
-        return view('attendance.index', compact('attendances'));
-    }
+        // $today = date('Y-m-d');
+        $userId = Auth::id();
+        $today = Carbon::today()->format('Y-m-d');
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'date' => 'required|date',
-        ]);
+        // 🔹 今日の出勤記録を取得（固定表示）
+        $todayAttendance = Attendance::where('user_id', $userId)
+            ->where('date', $today)
+            ->first();
 
-        // 今日の出勤データが既に存在するか確認
-        $existingAttendance = Attendance::where('user_id', Auth::id())
-        ->where('date', $request->date)
-        ->first();
+        // 現在の年と月を取得（リクエストがない場合は今月をデフォルト）
+        $year = $request->input('year', Carbon::now()->year);
+        $month = $request->input('month', Carbon::now()->month);
 
-        if ($existingAttendance) {
-            return redirect()->back()->with('error', '既に出勤記録があります。');
-        }
+        // 指定された年と月の出勤記録を取得
+        $attendances = Attendance::where('user_id', $userId, Auth::id())
+            ->whereYear('date', $year)
+            ->whereMonth('date', $month)
+            ->orderBy('date', 'desc')
+            ->get();
 
-        // 出勤データの作成
-        Attendance::create([
-            'user_id' => Auth::id(),
-            'date' => $request->date,
-            'check_in' => now(),
-        ]);
-
-        return redirect()->back()->with('success', '出勤時間を記録しました。');
+        // 🔹 今日の日付の出勤申請を取得（過去のデータを取得しないように修正）
+        $pendingRequest = AttendanceRequest::where('user_id', $userId, Auth::id())
+            ->where('date', $today) // ✅ 今日の申請のみ取得
+            ->whereIn('status', ['pending', 'approved'])
+            ->first();
+        
+            // dd($year, $month, Attendance::pluck('date'));
+        return view('attendance.index', compact('todayAttendance','attendances','pendingRequest', 'year', 'month', 'today'));
     }
 
     public function update(Request $request, $id)
